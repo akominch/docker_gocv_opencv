@@ -1,4 +1,5 @@
-FROM arm32v7/golang:1.14.4-buster
+# FROM arm32v7/golang:1.14.4-buster
+FROM balenalib/raspberry-pi-debian-golang:latest-buster
 
 ENV GOLANG_VERSION 1.14.4
 
