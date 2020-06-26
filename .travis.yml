@@ -1,0 +1,30 @@
+sudo: required
+services:
+- docker
+language: bash
+script:
+- |
+  echo "Updating Docker to have docker manifest command"
+  curl https://get.docker.com | sh
+  echo "Enabling docker client experimental features"
+  mkdir -p ~/.docker
+  echo '{ "experimental": "enabled" }' > ~/.docker/config.json
+  docker version
+# prepare qemu
+- docker run --rm --privileged multiarch/qemu-user-static:register --reset
+# build image
+- docker build -t gocv .
+# push image
+- >
+  if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+    docker login -u="$DOCKER_USER" -p="$DOCKER_PASS"
+    TAG=$(grep "ENV GOLANG_VERSION" Dockerfile | awk 'NF>1{print $NF}')
+    docker tag gocv akominch/gocv:arm-$TAG
+    docker push akominch/gocv:arm-$TAG
+    docker manifest create akominch/gocv:$TAG akominch/gocv:arm-$TAG
+    docker manifest annotate akominch/gocv:$TAG akominch/gocv:arm-$TAG --os linux --arch arm --variant v7
+    docker manifest push akominch/gocv:$TAG
+    docker manifest create akominch/gocv akominch/gocv:arm-$TAG
+    docker manifest annotate akominch/gocv akominch/gocv:arm-$TAG --os linux --arch arm --variant v7
+    docker manifest push akominch/gocv
+  fi

@@ -1,5 +1,7 @@
 FROM arm32v7/golang:1.14.4-buster
 
+ENV GOLANG_VERSION 1.14.4
+
 RUN apt-get update && \
       apt-get -y install sudo
 
